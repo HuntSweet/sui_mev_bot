@@ -16,67 +16,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-class MEVBot:
-    def __init__(self):
-        self.config = Config()
-        self.monitor = TransactionMonitor(self.config.SUI_RPC_URL)
-        self.analyzer = PriceImpactAnalyzer()
-        self.strategy = ArbitrageStrategy(self.config)
-        self.executor = TransactionExecutor(self.config)
-        
-    async def process_transaction(self, transaction: Dict) -> Optional[bool]:
-        """
-        处理单个交易
-        """
-        try:
-            # 分析价格影响
-            price_impact, affected_pairs = await self.analyzer.analyze_price_impact(transaction)
-            
-            # 如果价格影响太小，直接跳过
-            if abs(price_impact) < self.config.MIN_PROFIT_THRESHOLD:
-                return None
-                
-            # 寻找套利机会
-            opportunity = await self.strategy.find_arbitrage_opportunity(affected_pairs)
-            if not opportunity:
-                return None
-                
-            # 执行套利交易
-            success = await self.executor.execute_arbitrage(opportunity)
-            return success
-            
-        except Exception as e:
-            logger.error(f"处理交易时发生错误: {e}")
-            return None
-            
-    async def run(self):
-        """
-        运行MEV机器人
-        """
-        logger.info("MEV机器人启动...")
-        
-        
-        while True:
-            try:
-                # 监控新交易
-                transactions = await self.monitor.monitor_transactions()
-                
-                # 并行处理所有交易
-                tasks = [self.process_transaction(tx) for tx in transactions]
-                results = await asyncio.gather(*tasks, return_exceptions=True)
-                
-                # 统计结果
-                successful_trades = sum(1 for r in results if r is True)
-                if successful_trades > 0:
-                    logger.info(f"成功执行 {successful_trades} 笔套利交易")
-                    
-                # 等待下一个轮询间隔
-                await asyncio.sleep(self.config.POLLING_INTERVAL)
-                
-            except Exception as e:
-                logger.error(f"运行时发生错误: {e}")
-                await asyncio.sleep(1)  # 发生错误时短暂暂停
-
 class AffectedPairsExtractor:
     def __init__(self):
         self.event_bus = EventBus(asyncio.get_event_loop())
@@ -100,6 +39,7 @@ async def main():
     config = Config()
     strategy = ArbitrageStrategy(config,event_bus)
     path_generator = PathGenerator()
+    # 用于接收盈利的机会并执行交易
     executor = TransactionExecutor(config,event_bus)
     
     async def run_bot(transactions:List[Dict]):
