@@ -3,14 +3,7 @@ import asyncio
 from sui_python_sdk import SuiClient, SuiConfig
 from ..config import Config
 from abc import ABC, abstractmethod
-
-
-class Monitor(ABC):
-    #数据源
-    @abstractmethod
-    async def monitor_transactions(self) -> List[Dict]:
-        pass
-
+from .monitor import Monitor
 
 class TransactionMonitor(Monitor):
     def __init__(self, rpc_url: str):

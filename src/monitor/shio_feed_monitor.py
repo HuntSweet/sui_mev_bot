@@ -2,24 +2,23 @@ import asyncio
 import json
 import logging
 import websockets
-from typing import Dict, List
-from decimal import Decimal
-from ..common.event_bus import EventBus
+from typing import Callable, Optional,List,Dict
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class ShioFeedMonitor:
-    def __init__(self, event_bus: EventBus, proxy: str = None):
+    def __init__(self, callback: Optional[Callable] = None, proxy: Optional[str] = None):
         self.ws_url = "wss://rpc.getshio.com/feed"
-        self.ws = None
+        self.callback = callback
+        self.ws: Optional[websockets.WebSocketClientProtocol] = None
         self.is_running = False
         self.proxy = proxy
-        self.event_bus = event_bus
         
     async def connect(self):
         """建立WebSocket连接"""
         try:
+            # 设置连接选项
             websocket_options = {
                 'max_size': None,
                 'ssl': True,
@@ -27,6 +26,7 @@ class ShioFeedMonitor:
                 'ping_timeout': 20,
             }
             
+            # 如果设置了代理
             if self.proxy:
                 proxy_host, proxy_port = self.proxy.split(':')
                 websocket_options.update({
@@ -45,59 +45,27 @@ class ShioFeedMonitor:
             logger.error(f"连接Shio Feed失败: {e}")
             return False
             
-    async def monitor_transactions(self, message: str):
+    async def monitor_transactions(self, message: str) -> List[Dict]:
         """处理接收到的消息"""
         try:
             data = json.loads(message)
             
+            logger.debug(f"收到消息: {data}")
+                
             # 处理ping消息
             if data.get("type") == "ping":
                 await self.send_pong()
                 return
-                
-            # 处理拍卖事件
+            
+            # 处理auction事件
             if data.get("auctionStarted","") != "":
-                transactions = self._parse_auction_event(data)
-                if transactions:
-                    self.event_bus.emit("receive_transactions", transactions)
+                logger.info(f"收到拍卖事件: {data}")
+
                     
+        except json.JSONDecodeError:
+            logger.error(f"解析消息失败: {message}")
         except Exception as e:
             logger.error(f"处理消息时发生错误: {e}")
-            
-    def _parse_auction_event(self, event: Dict) -> List[Dict]:
-        """
-        解析拍卖事件为标准交易格式
-        返回格式:
-        {
-            "hash": str,
-            "dex": str,
-            "function": str,
-            "token_in": str,
-            "token_out": str,
-            "amount_in": Decimal,
-            "amount_out": Decimal,
-            "timestamp": int
-        }
-        """
-        try:
-            auction_data = event.get("data", {})
-            
-            transaction = {
-                "hash": auction_data.get("id", ""),
-                "dex": "shio",
-                "function": "auction",
-                "token_in": auction_data.get("baseAsset", ""),
-                "token_out": auction_data.get("quoteAsset", ""),
-                "amount_in": Decimal(str(auction_data.get("baseAmount", "0"))),
-                "amount_out": Decimal(str(auction_data.get("quoteAmount", "0"))),
-                "timestamp": auction_data.get("timestamp", 0)
-            }
-            
-            return [transaction]
-            
-        except Exception as e:
-            logger.error(f"解析拍卖事件时发生错误: {e}")
-            return []
             
     async def send_pong(self):
         """响应ping消息"""
@@ -108,7 +76,7 @@ class ShioFeedMonitor:
             except Exception as e:
                 logger.error(f"发送pong消息失败: {e}")
                 
-    async def _start(self):
+    async def start(self):
         """启动监控"""
         self.is_running = True
         
@@ -135,7 +103,20 @@ class ShioFeedMonitor:
         self.is_running = False
         if self.ws:
             await self.ws.close()
-            self.ws = None 
-    
-    def start(self):
-        asyncio.create_task(self._start())
+            self.ws = None
+
+
+async def main():
+    """主函数"""
+    monitor = ShioFeedMonitor(callback=example_callback)
+    try:
+        await monitor.start()
+    except KeyboardInterrupt:   
+        logger.info("程序被用户中断")
+        await monitor.stop()
+    except Exception as e:
+        logger.error(f"程序异常退出: {e}")
+        await monitor.stop()
+
+if __name__ == "__main__":
+    asyncio.run(main()) 

@@ -2,15 +2,16 @@ from typing import Dict
 from sui_sdk import SuiClient, SuiConfig
 from ..config import Config
 from ..common.event_bus import EventBus
-
+from ..token_price.token_price import TokenPriceProvider
 class TransactionExecutor:
-    def __init__(self, config: Config,event_bus:EventBus):
+    def __init__(self, config: Config,event_bus:EventBus,token_price_provider:TokenPriceProvider):
         self.config = config
         self.client = SuiClient(SuiConfig.from_rpc_url(config.SUI_RPC_URL))
         self.event_bus = event_bus
         self.event_bus.add_event("arbitrage_opportunity",self.execute_arbitrage)
+        self.token_price_provider = token_price_provider
         
-    async def execute_arbitrage(self, arbitrage_opportunity: Dict) -> bool:
+    async def monitor_transactions(self, arbitrage_opportunity: Dict) -> bool:
         """
         执行套利交易
         """

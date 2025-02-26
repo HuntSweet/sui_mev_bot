@@ -18,8 +18,7 @@ class Strategy(ABC):
 
 
 class Strategies:
-    def __init__(self,config:Config,event_bus:EventBus):
-        self.config = config
+    def __init__(self,event_bus:EventBus):
         self.event_bus = event_bus
         self.strategies = []
         

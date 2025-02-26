@@ -7,7 +7,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class TwoV2PoolArbitrageStrategy(Strategy):
+class TwoPoolArbitrageStrategy(Strategy):
     """
     两池子套利策略，通过求导计算最优输入金额
     基于 Uniswap V2 的 x * y = k 公式
