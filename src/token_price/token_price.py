@@ -5,3 +5,6 @@ class TokenPriceProvider:
     def get_token_price(self,token_address:str)->float:
         pass
     
+    async def update_token_price(self):
+        pass
+    

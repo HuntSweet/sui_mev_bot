@@ -3,6 +3,7 @@ from sui_sdk import SuiClient, SuiConfig
 from ..config import Config
 from ..common.event_bus import EventBus
 from ..token_price.token_price import TokenPriceProvider
+
 class TransactionExecutor:
     def __init__(self, config: Config,event_bus:EventBus,token_price_provider:TokenPriceProvider):
         self.config = config

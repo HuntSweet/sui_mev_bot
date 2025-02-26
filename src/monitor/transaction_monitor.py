@@ -4,10 +4,11 @@ from sui_python_sdk import SuiClient, SuiConfig
 from ..config import Config
 from abc import ABC, abstractmethod
 from .monitor import Monitor
-
+from ..db.db import DB
 class TransactionMonitor(Monitor):
-    def __init__(self, rpc_url: str):
+    def __init__(self, rpc_url: str,db:DB):
         self.client = SuiClient(SuiConfig.from_rpc_url(rpc_url))
+        self.db = db
         # DEX合约地址映射
         self.dex_contracts = {
             "turbos": {
@@ -31,7 +32,7 @@ class TransactionMonitor(Monitor):
             "remove_liquidity": "0x..."
         }
         
-    async def monitor_transactions(self) -> List[Dict]:
+    async def monitor_transactions(self):
         """
         监控链上交易，识别潜在的套利机会
         """
@@ -45,7 +46,10 @@ class TransactionMonitor(Monitor):
             # 过滤出DEX相关交易
             dex_transactions = self._filter_dex_transactions(transactions)
             
-            return dex_transactions
+            # 更新池子
+            await self.db.update_pool(dex_transactions)
+            
+            self.event_bus.emit("receive_transactions", dex_transactions)
             
         except Exception as e:
             print(f"监控交易时发生错误: {e}")

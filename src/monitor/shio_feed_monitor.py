@@ -8,9 +8,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class ShioFeedMonitor:
-    def __init__(self, callback: Optional[Callable] = None, proxy: Optional[str] = None):
+    def __init__(self,  proxy: Optional[str] = None):
         self.ws_url = "wss://rpc.getshio.com/feed"
-        self.callback = callback
         self.ws: Optional[websockets.WebSocketClientProtocol] = None
         self.is_running = False
         self.proxy = proxy
@@ -44,8 +43,12 @@ class ShioFeedMonitor:
         except Exception as e:
             logger.error(f"连接Shio Feed失败: {e}")
             return False
-            
-    async def monitor_transactions(self, message: str) -> List[Dict]:
+    
+    def convert_message(self,message:str) -> List[Dict]:
+        """将消息转换为交易信息"""
+        pass
+    
+    async def monitor_transactions(self, message: str):
         """处理接收到的消息"""
         try:
             data = json.loads(message)
@@ -60,6 +63,10 @@ class ShioFeedMonitor:
             # 处理auction事件
             if data.get("auctionStarted","") != "":
                 logger.info(f"收到拍卖事件: {data}")
+                transactions = self.convert_message(data)
+                # 更新池子
+                await self.db.update_pool(transactions)
+                self.event_bus.emit("receive_transactions", transactions)
 
                     
         except json.JSONDecodeError:
@@ -105,18 +112,3 @@ class ShioFeedMonitor:
             await self.ws.close()
             self.ws = None
 
-
-async def main():
-    """主函数"""
-    monitor = ShioFeedMonitor(callback=example_callback)
-    try:
-        await monitor.start()
-    except KeyboardInterrupt:   
-        logger.info("程序被用户中断")
-        await monitor.stop()
-    except Exception as e:
-        logger.error(f"程序异常退出: {e}")
-        await monitor.stop()
-
-if __name__ == "__main__":
-    asyncio.run(main()) 

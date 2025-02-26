@@ -13,7 +13,9 @@ from common.event_bus import EventBus
 from analysis.price_impact import TransactionFilters, PriceImpactFilter
 from analysis.price_impact import Pool
 from token_price.token_price import TokenPriceProvider
-from monitor.shio_feed import ShioFeedMonitor
+from monitor.shio_feed_monitor import ShioFeedMonitor
+from path.path_finder import PathFinder, PathConfig
+from decimal import Decimal
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -27,29 +29,39 @@ class AffectedPairsExtractor:
     async def extract_affected_pairs(self, transactions: List[Dict]) -> List[Pool]:
         pass
 
-class PathGenerator:
-    def __init__(self):
-        self.event_bus = EventBus(asyncio.get_event_loop())
-        
-    async def generate_path_list(self, affected_pairs: List[Pool]) -> List[List[Pool]]:
-        pass
+
     
 async def main():
     config = Config()
     
+    # 创建交易监控器
     transaction_monitor = TransactionMonitor()
     shio_feed_monitor = ShioFeedMonitor()
     transaction_monitor.start()
     shio_feed_monitor.start()
     
     event_bus = EventBus(asyncio.get_event_loop())
+    
     transaction_filters = TransactionFilters()
     transaction_filters.add_filter(PriceImpactFilter())
     affected_pairs_extractor = AffectedPairsExtractor()
+    
     strategies = Strategies(event_bus)
     strategies.add_strategy(TwoPoolArbitrageStrategy())
     strategies.add_strategy(GradientSearchStrategy())
-    path_generator = PathGenerator()
+    
+    # 创建路径查找器
+    path_config = PathConfig(
+        max_path_length=3,
+        min_liquidity=Decimal('1000'),
+        custom_paths=[
+        ],
+        blacklist_tokens={"SAFEMOON"},
+        blacklist_dexes={""}
+    )
+    
+    path_finder = PathFinder(path_config)
+
     token_price_provider = TokenPriceProvider()
     # 用于接收盈利的机会并执行交易
     executor = TransactionExecutor(config,event_bus,token_price_provider)
@@ -61,7 +73,7 @@ async def main():
             # 提取影响池
             affected_pairs = await affected_pairs_extractor.extract_affected_pairs(filterd_transactions)
             # 生成路径
-            path_list = await path_generator.generate_path_list(affected_pairs)
+            path_list = await path_finder.find_paths(affected_pairs)
             # 寻找套利机会
             await strategies.find_arbitrage_opportunities(path_list)
         except Exception as e:
@@ -69,6 +81,7 @@ async def main():
     
     event_bus.add_event("receive_transactions", run_bot)
     while True:
+        await token_price_provider.update_token_price()
         await asyncio.sleep(10)
 
 if __name__ == "__main__":
