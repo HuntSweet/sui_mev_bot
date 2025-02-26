@@ -15,6 +15,14 @@ dependencies = [
     "websockets (>=12.0,<13.0)"
 ]
 
+[tool.poetry]
+name = "sui_mev_bot"  
+version = "0.1.0"     
+description = "MEV bot for Sui blockchain" 
+authors = ["Your Name <your.email@example.com>"] 
+license = "MIT"  
+readme = "README.md" 
+
 [tool.poetry.dependencies]
 python = ">=3.12,<4.0"  # 添加版本上限
 
