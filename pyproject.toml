@@ -1,0 +1,21 @@
+[project]
+name = "mev-project"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "wqh"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "sui-python-sdk (>=0.1.5,<0.2.0)",
+    "pytest (>=8.3.4,<9.0.0)",
+    "websockets (>=15.0,<16.0)",
+    "python-socks[asyncio] (>=2.7.1,<3.0.0)",
+    "scipy (>=1.15.2,<2.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

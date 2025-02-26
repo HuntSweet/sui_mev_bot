@@ -1,0 +1,4 @@
+sui-sdk
+aiohttp
+python-dotenv
+web3 
