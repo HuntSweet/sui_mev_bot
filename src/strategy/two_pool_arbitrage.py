@@ -1,8 +1,11 @@
 from decimal import Decimal
 from typing import Tuple, List
 from ..analysis.price_impact import Pool
-from .arbitrage import Strategy
+from .strategies import Strategy
 import math
+import logging
+
+logger = logging.getLogger(__name__)
 
 class TwoV2PoolArbitrageStrategy(Strategy):
     """
@@ -10,12 +13,12 @@ class TwoV2PoolArbitrageStrategy(Strategy):
     基于 Uniswap V2 的 x * y = k 公式
     """
     
-    def __init__(self):
-        self.gas_cost = Decimal('0.001')  # 预估gas成本
+    def __init__(self,profit_threshold:Decimal=Decimal('0')):
+        self.profit_threshold = profit_threshold 
         
     async def find_arbitrage_opportunity(self, path_list: List[List[Pool]]):
         """分析两个池子之间的套利机会"""
-        for path in path_list:
+        for path in path_list:  
             if len(path) != 2:  # 只处理两池子路径
                 continue
                 
@@ -27,11 +30,12 @@ class TwoV2PoolArbitrageStrategy(Strategy):
             
             if optimal_amount > 0:
                 profit = self._calculate_profit(pool1, pool2, optimal_amount)
-                if profit > self.gas_cost:
+                if profit > self.profit_threshold:
                     return {
                         "path": path,
                         "input_amount": optimal_amount,
-                        "expected_profit": profit
+                        "expected_profit": profit,
+                        "profit_token": pool2.token_out
                     }
         return None
         
@@ -57,7 +61,7 @@ class TwoV2PoolArbitrageStrategy(Strategy):
             return max(optimal_amount, Decimal('0'))
             
         except Exception as e:
-            print(f"计算最优输入金额时发生错误: {e}")
+            logger.error(f"计算最优输入金额时发生错误: {e}")
             return Decimal('0')
             
     def _calculate_profit(self, pool1: Pool, pool2: Pool, amount_in: Decimal) -> Decimal:
@@ -73,5 +77,5 @@ class TwoV2PoolArbitrageStrategy(Strategy):
             return final_amount - amount_in
             
         except Exception as e:
-            print(f"计算利润时发生错误: {e}")
+            logger.error(f"计算利润时发生错误: {e}")
             return Decimal('0') 
