@@ -5,7 +5,7 @@ from typing import TypedDict, List
 from analysis.transaction_filter import TransactionFilter
 
 class PriceImpactFilter(TransactionFilter):
-    def __init__(self,price_impact_threshold:Decimal):
+    def __init__(self,price_impact_threshold:Decimal=Decimal('0.01')):
         self.price_cache = {}  # 缓存价格数据
         self.price_impact_threshold = price_impact_threshold
         

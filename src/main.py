@@ -6,9 +6,10 @@ from monitor.transaction_monitor import TransactionMonitor
 from analysis.price_impact import PriceImpactAnalyzer
 from strategy.strategies import Strategies
 from strategy.gradient_search_strategy import GradientSearchStrategy
-from strategy.two_pool_arbitrage import TwoPoolArbitrageStrategy
+from strategy.two_pool_arbitrage_strategy import TwoPoolArbitrageStrategy
 
 from execution.transaction_executor import TransactionExecutor
+from db.db import DB
 from common.event_bus import EventBus
 from analysis.price_impact import TransactionFilters, PriceImpactFilter
 from analysis.price_impact import Pool
@@ -34,8 +35,11 @@ class AffectedPairsExtractor:
 async def main():
     config = Config()
     
+    # 数据库
+    db = DB()
+    
     # 创建交易监控器
-    transaction_monitor = TransactionMonitor()
+    transaction_monitor = TransactionMonitor(config.SUI_RPC_URL,db)
     shio_feed_monitor = ShioFeedMonitor()
     transaction_monitor.start()
     shio_feed_monitor.start()
@@ -60,7 +64,7 @@ async def main():
         blacklist_dexes={""}
     )
     
-    path_finder = PathFinder(path_config)
+    path_finder = PathFinder(path_config,db)
 
     token_price_provider = TokenPriceProvider()
     # 用于接收盈利的机会并执行交易
