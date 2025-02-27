@@ -64,8 +64,7 @@ class ShioFeedMonitor:
             if data.get("auctionStarted","") != "":
                 logger.info(f"收到拍卖事件: {data}")
                 transactions = self.convert_message(data)
-                # 更新池子
-                await self.db.update_pool(transactions)
+
                 self.event_bus.emit("receive_transactions", transactions)
 
                     
