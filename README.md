@@ -156,18 +156,3 @@ poetry update
 poetry export -f requirements.txt --output requirements.txt --without-hashes
 ```
 
-### 使用 pip
-
-如果不使用 Poetry，也可以直接使用 pip：
-
-```bash
-pip install pysui websockets python-dotenv scipy numpy aiohttp pytest pytest-asyncio
-```
-
-## 使用方法
-
-启动机器人
-
-```bash
-python src/main.py
-```
