@@ -1,9 +1,10 @@
 from decimal import Decimal
 from typing import List, Optional, Tuple, Dict
 from ..analysis.price_impact import Pool
-from .strategies import Strategy
+from .strategies import Strategy,Opportunity
 import numpy as np
 import logging
+from ..token_price.token_price import TokenPriceProvider
 
 logger = logging.getLogger(__name__)
 
@@ -13,13 +14,13 @@ class GradientSearchStrategy(Strategy):
     """
     def __init__(self, learning_rate: float = 0.01, max_iterations: int = 1000, 
                  profit_threshold: Decimal = Decimal('0.1'), 
-                 min_gradient: float = 1e-6):
+                 min_gradient: float = 1e-6,token_price_provider: TokenPriceProvider = None):
         self.learning_rate = learning_rate
         self.max_iterations = max_iterations
         self.profit_threshold = profit_threshold  # 达到此利润即可停止
         self.min_gradient = min_gradient  # 最小梯度阈值
-        
-    async def find_arbitrage_opportunity(self, path_list: List[List[Pool]]) -> List[Dict]:
+        self.token_price_provider = token_price_provider
+    async def find_arbitrage_opportunity(self, path_list: List[List[Pool]]) -> List[Opportunity]:
         """分析所有可能的套利机会"""
         opportunities = []
         
@@ -29,12 +30,15 @@ class GradientSearchStrategy(Strategy):
                 
             amount, profit = self._find_optimal_amount(path)
             if profit > 0:  # 只要有利润就记录
-                opportunities.append({
-                    "path": path,
-                    "input_amount": amount,
-                    "expected_profit": profit,
-                    "profit_token": path[-1].token_out
-                })
+                opportunities.append(
+                    Opportunity(
+                        path=path,
+                        input_amount=amount,
+                        expected_profit=profit,
+                        profit_token=path[-1].token_out,
+                        usd_profit=profit * self.token_price_provider.get_token_price(path[-1].token_out)
+                    )
+                )
                 
         return opportunities
         
@@ -62,7 +66,7 @@ class GradientSearchStrategy(Strategy):
                 best_amount = current_amount
                 
             # 如果达到利润门槛，提前停止
-            if current_profit >= self.profit_threshold:
+            if self.token_price_provider.get_token_price(path[-1].token_out) * current_profit >= self.profit_threshold:
                 break
                 
             # 计算梯度

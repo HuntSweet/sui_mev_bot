@@ -53,8 +53,8 @@ async def main():
     
     # 策略
     strategies = Strategies(event_bus)
-    strategies.add_strategy(TwoPoolArbitrageStrategy())
-    strategies.add_strategy(GradientSearchStrategy())
+    strategies.add_strategy(TwoPoolArbitrageStrategy(token_price_provider=token_price_provider))
+    strategies.add_strategy(GradientSearchStrategy(token_price_provider=token_price_provider))
     
     # 创建路径查找器
     path_config = PathConfig(

@@ -1,10 +1,10 @@
 from decimal import Decimal
 from typing import Tuple, List
 from ..analysis.price_impact import Pool
-from .strategies import Strategy
+from .strategies import Strategy,Opportunity
 import math
 import logging
-
+from ..token_price.token_price import TokenPriceProvider
 logger = logging.getLogger(__name__)
 
 # FlowX Swap AMM与 Kriya 1
@@ -14,10 +14,11 @@ class TwoPoolArbitrageStrategy(Strategy):
     基于 Uniswap V2 的 x * y = k 公式
     """
     
-    def __init__(self,profit_threshold:Decimal=Decimal('0')):
+    def __init__(self,profit_threshold:Decimal=Decimal('0'),token_price_provider: TokenPriceProvider = None):
         self.profit_threshold = profit_threshold 
+        self.token_price_provider = token_price_provider
         
-    async def find_arbitrage_opportunity(self, path_list: List[List[Pool]]):
+    async def find_arbitrage_opportunity(self, path_list: List[List[Pool]]) -> List[Opportunity]:
         """分析两个池子之间的套利机会"""
         for path in path_list:  
             if len(path) != 2:  # 只处理两池子路径
@@ -32,12 +33,13 @@ class TwoPoolArbitrageStrategy(Strategy):
             if optimal_amount > 0:
                 profit = self._calculate_profit(pool1, pool2, optimal_amount)
                 if profit > self.profit_threshold:
-                    return {
-                        "path": path,
-                        "input_amount": optimal_amount,
-                        "expected_profit": profit,
-                        "profit_token": pool2.token_out
-                    }
+                    return Opportunity(
+                        path=path,
+                        input_amount=optimal_amount,
+                        expected_profit=profit,
+                        profit_token=pool2.token_out,
+                        usd_profit=profit * self.token_price_provider.get_token_price(pool2.token_out)
+                    )
         return None
         
     def _calculate_optimal_amount(self, pool1: Pool, pool2: Pool) -> Decimal:

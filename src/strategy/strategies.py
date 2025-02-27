@@ -10,6 +10,7 @@ class Opportunity(TypedDict):
     input_amount: Decimal
     expected_profit: Decimal
     profit_token: str
+    usd_profit: Decimal
     
 class Strategy(ABC):
     @abstractmethod
