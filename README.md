@@ -6,24 +6,23 @@
 
 ## 项目状态 
 
-❗️ ***\*当前开发阶段\****   
+❗️ ****当前开发阶段****   
 
-本项目为初期开发框架，仅包含以下基础模块：
+本项目为开发框架，仅包含以下模块：
 
 - 项目结构搭建 
 - 基础类定义 
-- 接口设计 
+- 接口设计
+- 部分模块实现
 - 运行主逻辑
 
-❌ ***\*尚未实现\****   
+❌ ****尚未实现****   
 
-- 核心业务逻辑 
+- 完整业务逻辑 
 
 - 数据持久化 
 
-- 异常处理 
-
--  完整测试用例
+- 完整测试用例
 
   
 
@@ -33,6 +32,7 @@
   - Sui 链上交易监控
   - Shio Feed 实时数据
   - 支持自定义数据源扩展
+  - 支持自定义数据筛选扩展
 
 - **灵活的套利策略**
   - 两池子套利（基于解析解）
@@ -55,7 +55,7 @@
 
 ```text
 src/
-├── analysis/       # 分析交易模块
+├── analysis/      # 分析交易模块
 ├── common/        # 通用工具
 ├── db/            # 数据库
 ├── execution/     # 交易执行
@@ -71,6 +71,84 @@ src/
 
 [![](https://mermaid.ink/img/pako:eNp9U99v0kAc_1ea7kWTw6Ttk30wGXRQ3kzmk1ceCr2ORmhJf0SXZYkzRpnZhAU31C1ubrCpycaWGIeA-M_0ruy_sPRY6CThHpq7-3w-38-n37tbYwuWhliRXbHVSpF5IikmEw7Hy9MNhSW7l2T7ItjfIe_PFJbC47HIwZvG0O--83st8rFBCTkmkXjEJCHdG_19S_ot_OlbLibj4XLRsJg0QtqETUFkaoo54z667uDh6-DDIanW4-7JSJqCpFbHtT1ca-I_V7ixTa6O8Hk9ZpeKeBKkdchhm2wO7waSkvAe_Ufca9ynkaQYHG0sQdxu4up3WiY3L3FwvhfstnH1DflyJ_FSVCjNQb_bojEpMzdD4SE57uDeKakfBD-PZ1hpLqJlJpHIQc8ffI7jPMXnhaTnQzbPRl-34iEzkVTmYEZ1_MFlcNGMFZapsRzm6-8Er36Tk5dhQ-ME6iwLcJzr1-nNj61RZyNOECJCFlJnmmJuN_3-NTkazN6-x9Dvn-DuBsXDW-AP98fnyiQeRAmmzCw90dlbViipjiMhnanYRlm1VxndKJXEBf2hDhzXtp4hcUEQhMk88dzQ3KLIV178J3ZQwTK1qTyfnyPn7sjDJwQWeSCBDMjehojDSZACaQ6keSBzQA6_wtSNBWwZ2WXV0MK3uzZWKaxbRGWksGI41ZCueiV33LH1kKp6rrW8ahZY0bU9BFjb8laKrKirJSdceRVNdZFkqGHTy7eUimo-tazJcv0fU7SWrw?type=png)](https://mermaid-js.github.io/mermaid-live-editor/edit#pako:eNp9U99v0kAc_1ea7kWTw6Ttk30wGXRQ3kzmk1ceCr2ORmhJf0SXZYkzRpnZhAU31C1ubrCpycaWGIeA-M_0ruy_sPRY6CThHpq7-3w-38-n37tbYwuWhliRXbHVSpF5IikmEw7Hy9MNhSW7l2T7ItjfIe_PFJbC47HIwZvG0O--83st8rFBCTkmkXjEJCHdG_19S_ot_OlbLibj4XLRsJg0QtqETUFkaoo54z667uDh6-DDIanW4-7JSJqCpFbHtT1ca-I_V7ixTa6O8Hk9ZpeKeBKkdchhm2wO7waSkvAe_Ufca9ynkaQYHG0sQdxu4up3WiY3L3FwvhfstnH1DflyJ_FSVCjNQb_bojEpMzdD4SE57uDeKakfBD-PZ1hpLqJlJpHIQc8ffI7jPMXnhaTnQzbPRl-34iEzkVTmYEZ1_MFlcNGMFZapsRzm6-8Er36Tk5dhQ-ME6iwLcJzr1-nNj61RZyNOECJCFlJnmmJuN_3-NTkazN6-x9Dvn-DuBsXDW-AP98fnyiQeRAmmzCw90dlbViipjiMhnanYRlm1VxndKJXEBf2hDhzXtp4hcUEQhMk88dzQ3KLIV178J3ZQwTK1qTyfnyPn7sjDJwQWeSCBDMjehojDSZACaQ6keSBzQA6_wtSNBWwZ2WXV0MK3uzZWKaxbRGWksGI41ZCueiV33LH1kKp6rrW8ahZY0bU9BFjb8laKrKirJSdceRVNdZFkqGHTy7eUimo-tazJcv0fU7SWrw)
 
+
+## 开发指南
+
+1. 添加新的数据源
+   - 继承 `Monitor` 类
+   - 实现 `monitor_transactions` 方法
+2. 添加新的过滤策略
+   - 继承 `TransactionFilter` 类
+   - 实现 `filter` 方法
+3. 添加新的套利策略
+   - 继承 `Strategy` 类
+   - 实现 `find_arbitrage_opportunity` 方法
+
+
+
+## 环境要求
+
+- Python 3.8+
+- pip 20.0+
+
+## 安装指南
+
+1. **创建并激活虚拟环境**
+
+```bash
+# 使用 venv
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+venv\Scripts\activate     # Windows
+```
+
+2. **安装依赖**
+
+```bash
+# 使用 requirements.txt
+pip install -r requirements.txt
+
+# 或者使用 poetry（推荐）
+poetry install
+```
+
+
+## 依赖管理
+
+项目使用 Poetry 进行依赖管理，主要依赖包括：
+
+```toml
+[tool.poetry.dependencies]
+python = "^3.8"
+websockets = ">=10.0,<13.0"  # 与pysui兼容的版本
+python-dotenv = "^1.0.0"
+sui-python-sdk = "^0.79.0"
+scipy = "^1.9.0"
+numpy = "^1.21.0"
+```
+
+### 使用 Poetry
+
+1. **安装 Poetry**
+```bash
+curl -sSL https://install.python-poetry.org | python3 -
+```
+
+2. **添加依赖**
+```bash
+poetry add package-name
+```
+
+3. **更新依赖**
+```bash
+poetry update
+```
+
+4. **导出 requirements.txt**
+```bash
+poetry export -f requirements.txt --output requirements.txt
+```
+
 ## 使用方法
 
 启动机器人
@@ -79,15 +157,6 @@ src/
 python main.py
 ```
 
-## 开发指南
-
-1. 添加新的数据源
-   - 继承 `Monitor` 类
-   - 实现 `monitor_transactions` 方法
-2. 添加新的套利策略
-   - 继承 `Strategy` 类
-   - 实现 `find_arbitrage_opportunity` 方法
-
 ## 测试
 
 运行测试：
@@ -95,11 +164,3 @@ python main.py
 ```
 pytest tests/ -v
 ```
-
-## 许可证
-
-MIT License - 查看 LICENSE 文件了解详情
-
-## 免责声明
-
-本项目仅供学习和研究使用，作者不对使用本项目造成的任何损失负责。在使用本项目进行实际交易之前，请充分了解相关风险。

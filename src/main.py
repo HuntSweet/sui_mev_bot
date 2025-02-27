@@ -46,10 +46,12 @@ async def main():
     
     event_bus = EventBus(asyncio.get_event_loop())
     
+    # 交易过滤器
     transaction_filters = TransactionFilters()
     transaction_filters.add_filter(PriceImpactFilter())
     affected_pairs_extractor = AffectedPairsExtractor()
     
+    # 策略
     strategies = Strategies(event_bus)
     strategies.add_strategy(TwoPoolArbitrageStrategy())
     strategies.add_strategy(GradientSearchStrategy())
