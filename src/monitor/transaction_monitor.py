@@ -1,13 +1,13 @@
 from typing import List, Dict, Set
-import asyncio
-from sui_python_sdk import SuiClient, SuiConfig
+from pysui import AsyncClient
+from pysui import SuiConfig
 from ..config import Config
 from abc import ABC, abstractmethod
 from .monitor import Monitor
 from ..db.db import DB
 class TransactionMonitor(Monitor):
     def __init__(self, rpc_url: str,db:DB):
-        self.client = SuiClient(SuiConfig.from_rpc_url(rpc_url))
+        self.client = AsyncClient(SuiConfig.from_rpc_url(rpc_url))
         self.db = db
         # DEX合约地址映射
         self.dex_contracts = {
