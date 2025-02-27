@@ -168,4 +168,6 @@ pip install pysui websockets python-dotenv scipy numpy aiohttp pytest pytest-asy
 
 启动机器人
 
+```bash
+python src/main.py
 ```
