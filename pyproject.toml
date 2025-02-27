@@ -25,6 +25,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.12,<4.0"  # 添加版本上限
+pysui = "^0.79.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
