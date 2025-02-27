@@ -1,5 +1,6 @@
 from typing import Dict
-from sui_sdk import SuiClient, SuiConfig
+from pysui.sui.client import AsyncClient
+from pysui.sui.sui_config import SuiConfig
 from ..config import Config
 from ..common.event_bus import EventBus
 from ..token_price.token_price import TokenPriceProvider
@@ -7,7 +8,7 @@ from ..token_price.token_price import TokenPriceProvider
 class TransactionExecutor:
     def __init__(self, config: Config,event_bus:EventBus,token_price_provider:TokenPriceProvider):
         self.config = config
-        self.client = SuiClient(SuiConfig.from_rpc_url(config.SUI_RPC_URL))
+        self.client = AsyncClient(SuiConfig.from_rpc_url(config.SUI_RPC_URL))
         self.event_bus = event_bus
         self.event_bus.add_event("arbitrage_opportunity",self.execute_arbitrage)
         self.token_price_provider = token_price_provider
@@ -55,7 +56,7 @@ class TransactionExecutor:
         验证扣除gas费用后是否仍然有利可图
         """
         expected_profit = opportunity.get("expected_profit", 0)
-        return expected_profit > (gas_cost * self.config.GAS_BUFFER)
+        return expected_profit > (gas_cost * self.token_price_provider.get_token_price(self.config.GAS_TOKEN))
         
     async def _send_transaction(self, transaction: Dict) -> Dict:
         """
