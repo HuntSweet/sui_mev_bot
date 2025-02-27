@@ -35,7 +35,7 @@
   - 支持自定义数据筛选扩展
 
 - **灵活的套利策略**
-  - 两池子套利（基于解析解）
+  - 两池子套利（基于解析解）（适用于FlowX Swap AMM与 Kriya 1等Dex）
   - 多池子套利（基于梯度搜索）
   - 支持添加自定义策略
 
@@ -97,9 +97,9 @@ src/
 
 ```bash
 # 使用 venv
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+.venv\Scripts\activate     # Windows
 ```
 
 2. **安装依赖**
@@ -122,9 +122,12 @@ poetry install
 python = "^3.8"
 websockets = ">=10.0,<13.0"  # 与pysui兼容的版本
 python-dotenv = "^1.0.0"
-sui-python-sdk = "^0.79.0"
+pysui = "0.79.0" 
 scipy = "^1.9.0"
 numpy = "^1.21.0"
+aiohttp = "^3.8.0"
+pytest = "^7.0.0"
+pytest-asyncio = "^0.18.0"
 ```
 
 ### 使用 Poetry
@@ -134,33 +137,36 @@ numpy = "^1.21.0"
 curl -sSL https://install.python-poetry.org | python3 -
 ```
 
-2. **添加依赖**
+2. **安装项目依赖**
+```bash
+poetry install
+```
+
+3. **添加新依赖**
 ```bash
 poetry add package-name
 ```
 
-3. **更新依赖**
+4. **更新依赖**
 ```bash
 poetry update
 ```
 
-4. **导出 requirements.txt**
+5. **导出 requirements.txt**
 ```bash
-poetry export -f requirements.txt --output requirements.txt
+poetry export -f requirements.txt --output requirements.txt --without-hashes
+```
+
+### 使用 pip
+
+如果不使用 Poetry，也可以直接使用 pip：
+
+```bash
+pip install pysui websockets python-dotenv scipy numpy aiohttp pytest pytest-asyncio
 ```
 
 ## 使用方法
 
 启动机器人
 
-```
-python main.py
-```
-
-## 测试
-
-运行测试：
-
-```
-pytest tests/ -v
 ```
