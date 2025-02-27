@@ -4,7 +4,7 @@ from pysui.sui.sui_config import SuiConfig
 from ..config import Config
 from ..common.event_bus import EventBus
 from ..token_price.token_price import TokenPriceProvider
-
+from ..strategy.strategies import Opportunity
 class TransactionExecutor:
     def __init__(self, config: Config,event_bus:EventBus,token_price_provider:TokenPriceProvider):
         self.config = config
@@ -13,7 +13,7 @@ class TransactionExecutor:
         self.event_bus.add_event("arbitrage_opportunity",self.execute_arbitrage)
         self.token_price_provider = token_price_provider
         
-    async def monitor_transactions(self, arbitrage_opportunity: Dict) -> bool:
+    async def monitor_transactions(self, arbitrage_opportunity: Opportunity) -> bool:
         """
         执行套利交易
         """
@@ -37,7 +37,7 @@ class TransactionExecutor:
             print(f"执行套利交易时发生错误: {e}")
             return False
             
-    async def _build_transaction(self, opportunity: Dict) -> Dict:
+    async def _build_transaction(self, opportunity: Opportunity) -> Dict:
         """
         构建交易数据
         """
@@ -51,11 +51,11 @@ class TransactionExecutor:
         # TODO: 实现gas估算逻辑
         return 0
         
-    def _validate_profitability(self, opportunity: Dict, gas_cost: int) -> bool:
+    def _validate_profitability(self, opportunity: Opportunity, gas_cost: int) -> bool:
         """
         验证扣除gas费用后是否仍然有利可图
         """
-        expected_profit = opportunity.get("expected_profit", 0)
+        expected_profit = opportunity.usd_profit
         return expected_profit > (gas_cost * self.token_price_provider.get_token_price(self.config.GAS_TOKEN))
         
     async def _send_transaction(self, transaction: Dict) -> Dict:
